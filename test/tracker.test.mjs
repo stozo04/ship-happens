@@ -37,8 +37,8 @@ test('seed preserves all 28 dates and the five source-backed releases', async ()
   const seed = JSON.parse(await readFile(new URL('../data/seed.json', import.meta.url), 'utf8'));
   assert.equal(seed.days.length, 28);
   assert.deepEqual(seed.days.map(day => dayNumber(day.date)), Array.from({ length: 28 }, (_, i) => i + 1));
-  assert.deepEqual(summarize(seed.days, seed.releases), { shippedDays: 2, totalReleases: 5, confirmedResets: 0 });
+  assert.deepEqual(summarize(seed.days, seed.releases), { shippedDays: 3, totalReleases: 6, confirmedResets: 2 });
   assert.equal(seed.releases.filter(release => release.day === 2).length, 4);
-  assert.equal(seed.days[1].reset_status, 'pending');
+  assert.equal(seed.days[1].reset_status, 'confirmed');
   for (const release of seed.releases) assert.equal(normalizeSourceUrl(release.source_url), release.source_url);
 });
