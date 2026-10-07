@@ -44,7 +44,9 @@ try {
     assert.match(await page.locator('#timeline').textContent(), /No confirmed resets yet/);
     assert.equal(await page.locator('#reset-score').textContent(), '0');
     await page.locator('[data-day="2"]').click();
-    assert.equal(await page.locator('#day-detail .release-card').count(), 4);
+    assert.equal(await page.locator('#day-detail .day-content > .release-card').count(), 4);
+    assert.equal(await page.locator('#day-detail .day-content').evaluate(e=>getComputedStyle(e).borderRadius),viewport.width<681?'10px':'12px');
+    await page.screenshot({path:`${outputDir}/modal-${viewport.width}.png`,fullPage:true});
     assert.equal(await page.locator('#day-detail .dialog-badge').count(), 1);
     assert.doesNotMatch(await page.locator('#day-detail').innerText(), /reset/i);
     await page.getByRole('button', {name:'Close day details'}).click();
