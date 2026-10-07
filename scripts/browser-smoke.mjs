@@ -18,8 +18,23 @@ try {
     await page.waitForFunction(() => document.querySelector('#data-status')?.textContent.includes('Updated'));
     assert.equal(await page.locator('[data-day]').count(), 28);
     assert.equal(await page.locator('#timeline .release-card').count(), 5);
+    const newest=page.locator('#timeline details').first();
+    const older=page.locator('#timeline details').last();
+    assert.equal(await newest.getAttribute('open'), '');
+    assert.equal(await older.getAttribute('open'), null);
+    await newest.locator('summary').click();
+    assert.equal(await newest.locator('.release-card').first().isVisible(), false);
+    await newest.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await newest.locator('.release-card').first().isVisible(), true);
+    await older.locator('summary').click();
+    assert.equal(await older.locator('.release-card').first().isVisible(), true);
+    await page.locator('#refresh').click();
+    await page.waitForFunction(() => !document.querySelector('#refresh').disabled);
+    assert.equal(await older.locator('.release-card').first().isVisible(), true);
     await page.locator('#search').fill('Decisions');
     assert.equal(await page.locator('#timeline .release-card').count(), 1);
+    assert.equal(await page.locator('#timeline .release-card').isVisible(), true);
     await page.locator('#search').fill('');
     assert.equal(await page.locator('[data-save], [data-filter=saved], .verified, #release-heading').count(), 0);
     assert.equal(await page.locator('#timeline .release-heading .source-link').count(), 5);
@@ -38,7 +53,7 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({path:`${outputDir}/live-${viewport.width}.png`,fullPage:true});
     assert.deepEqual(errors, []);
-    console.log(`PASS ${viewport.width}px: storage, board, search, compact rows, category colors, resets, dialog, refresh, minimal hero, overflow`);
+    console.log(`PASS ${viewport.width}px: storage, board, search, collapsible days, keyboard, compact rows, category colors, resets, dialog, refresh, minimal hero, overflow`);
     await page.close();
   }
 } finally { await browser.close(); }
