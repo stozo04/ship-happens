@@ -70,6 +70,10 @@ try {
     assert.equal(await page.locator('#timeline .reset-notice').count(), 1);
     await page.locator('[data-day="1"]').click();
     assert.match(await page.locator('#day-detail .dialog-status').innerText(), /Reset confirmed/);
+    const banner=page.locator('#day-detail .reset-notice');
+    assert.equal(await banner.evaluate(e=>getComputedStyle(e).borderLeftWidth), '4px');
+    assert.equal(await banner.evaluate(e=>getComputedStyle(e).backgroundColor), 'rgb(240, 240, 240)');
+    await page.screenshot({path:`${outputDir}/confirmed-reset-modal-${viewport.width}.png`,fullPage:true});
     assert.deepEqual(errors, []);
     console.log(`PASS ${viewport.width}px: storage, board, search, collapsible days, keyboard, compact rows, category colors, resets, dialog, refresh, minimal hero, overflow`);
     await page.close();
