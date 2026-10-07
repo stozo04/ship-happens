@@ -24,4 +24,6 @@ document.addEventListener('click',event=>{const heading=event.target.closest('su
 
 $('#search').addEventListener('input',event=>{query=event.target.value;renderTimeline();});$('#refresh').addEventListener('click',load);document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const box=d.getBoundingClientRect();if(e.clientX<box.left||e.clientX>box.right||e.clientY<box.top||e.clientY>box.bottom)d.close();}}));
 
+$('#agent-open').addEventListener('click',()=>{$('#copy-status').textContent='';$('#agent-dialog').showModal();});
+$('#copy-agent-prompt').addEventListener('click',async()=>{const button=$('#copy-agent-prompt');button.disabled=true;try{await navigator.clipboard.writeText($('#agent-prompt').value);$('#copy-status').textContent='Copied';}catch{$('#agent-prompt').focus();$('#agent-prompt').select();$('#copy-status').textContent='Copy unavailable. Select and copy the prompt manually.';}finally{button.disabled=false;}});
 load();
