@@ -41,20 +41,6 @@ node scripts/browser-smoke.mjs
 
 Set `TRACKER_URL` to the deployment you want to test, and `PLAYWRIGHT_MODULE` if Playwright is installed outside this project. The smoke checks cover desktop and mobile layouts, search, favorites, day dialogs, reset filtering, Refresh, and celebration.
 
-## Storage and hosting
-
-The live app is hosted on Vercel and connected to Supabase. Its public API accepts reads only. The three tracker tables have row-level security and read-only anonymous access:
-
-- `ship_happens_settings`
-- `ship_happens_days`
-- `ship_happens_releases`
-
-For your own deployment, initialize your own Supabase database with `db/schema.sql` and `db/seed.sql`. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` as server environment variables, following `.env.example`. Do not use a service-role key in the browser.
-
-`scripts/seed-sql.mjs` regenerates the initial seed SQL. It preserves existing days and releases, but updates challenge settings, so review it before rerunning against an active tracker. The seed is an initial snapshot; production updates live in Supabase.
-
-The existing production Vercel project is deployed, but automatic Git-triggered deployment has not been configured. Analytics script loading has been checked; dashboard reporting has not.
-
 ## Contributing
 
 Ship with us. Open an issue or send a focused pull request to `main`. See [CONTRIBUTING.md](CONTRIBUTING.md) for checks and data requirements.
