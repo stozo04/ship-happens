@@ -34,12 +34,11 @@ try {
     await page.locator('[data-filter=all]').click();
     await page.locator('#refresh').click();
     await page.waitForFunction(() => !document.querySelector('#refresh').disabled);
-    await page.locator('#celebrate').click();
-    assert.match(await page.locator('#toast').textContent(), /Shipping/);
+    assert.equal(await page.locator('#celebrate, .hero-description, #confetti').count(), 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({path:`${outputDir}/live-${viewport.width}.png`,fullPage:true});
     assert.deepEqual(errors, []);
-    console.log(`PASS ${viewport.width}px: storage, board, search, compact rows, category colors, resets, dialog, refresh, celebration, overflow`);
+    console.log(`PASS ${viewport.width}px: storage, board, search, compact rows, category colors, resets, dialog, refresh, minimal hero, overflow`);
     await page.close();
   }
 } finally { await browser.close(); }
