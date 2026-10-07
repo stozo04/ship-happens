@@ -25,19 +25,19 @@
       "day": 2,
       "date": "2026-10-06",
       "ship_status": "verified",
-      "reset_status": "pending",
-      "reset_source_url": null,
+      "reset_status": "confirmed",
+      "reset_source_url": "https://x.com/thsottiaux/status/2107578625419866469",
       "poll_url": "https://x.com/thsottiaux/status/2107576143285219799",
-      "note": "Four releases announced. A reset vote was open when checked on October 6; no delivered reset was confirmed. The poll closes October 6 at 7:58 p.m. CT."
+      "note": "Four releases announced. A full usage reset was delivered around 10:35 PM CT following the community vote."
     },
     {
       "day": 3,
       "date": "2026-10-07",
-      "ship_status": "pending",
-      "reset_status": "unconfirmed",
-      "reset_source_url": null,
+      "ship_status": "verified",
+      "reset_status": "confirmed",
+      "reset_source_url": "https://x.com/thsottiaux/status/2107913674593644711",
       "poll_url": null,
-      "note": "Awaiting source-backed updates."
+      "note": "GPT-6 shipped in ChatGPT with custom UI. Banked reset delivered to all paid accounts celebrating 40M active users across Codex and ChatGPT Work."
     },
     {
       "day": 4,
@@ -310,6 +310,15 @@
       "category": "API",
       "source_url": "https://x.com/thsottiaux/status/2107574912349303197",
       "product_url": "https://x.com/i/status/2107573382229188645"
+    },
+    {
+      "id": "day-3-gpt6",
+      "day": 3,
+      "title": "GPT-6 in ChatGPT",
+      "summary": "GPT-6 is now available in ChatGPT with a custom and intelligent UI. Day 3 also celebrates 40M active users across Codex and ChatGPT Work with a banked reset for all paid accounts.",
+      "category": "ChatGPT",
+      "source_url": "https://x.com/thsottiaux/status/2107913674593644711",
+      "product_url": "https://x.com/sama/status/2107924408597950702"
     }
   ]
 }
