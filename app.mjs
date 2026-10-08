@@ -1,4 +1,4 @@
-import {dayStatus,summarize,normalizeSourceUrl,dayNumber,challengeProgress,tugOfWar} from './lib/tracker.mjs';
+import {dayStatus,dayMissed,summarize,normalizeSourceUrl,dayNumber,challengeProgress,tugOfWar} from './lib/tracker.mjs';
 const $ = selector => document.querySelector(selector);
 const expandedDays=new Map();
 let records,filter='all',query='',mode='snapshot',warning='',toastTimer;
@@ -21,9 +21,9 @@ if(p.phase==='complete'){verdict=t.leader==='tie'?`It’s a tie, ${score}`:`🏆
 else{verdict=!(t.features+t.resets)?'Nobody’s pulled yet':t.leader==='tie'?`All tied up, ${score}`:`${leader} lead ${score}`;note=p.phase==='upcoming'?'28 days to pull. Winner decided Nov 1.':p.daysLeft?`${plural(p.daysLeft,'day')} left to pull. Winner decided Nov 1.`:'Final day. Winner decided tonight.';}
 $('#tug-verdict').textContent=verdict;$('#tug-note').textContent=note;
 requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#tug-knot').style.left=`${t.knot}%`;}));}
-function tile(d,today,current){const count=records.releases.filter(r=>r.day===d.day).length;const state=dayStatus(d);const reset=d.reset_status==='confirmed';const isToday=d.day===current;const missed=state==='pending'&&!count&&d.date<today&&!isToday;const isFuture=d.date>today;
-const marks=count?(count<=4?`<span class="tile-dots">${'<i></i>'.repeat(count)}</span>`:`<span class="tile-many">×${count}</span>`):(isToday&&state==='pending'?'<span class="tile-today">Today</span>':'');
-const label=isFuture?'coming up':state==='pending'?(count?`in progress, ${plural(count,'feature')} so far`:isToday?'today, nothing yet':'not verified'):`completed with ${[count?plural(count,'feature'):'',reset?'a usage reset':''].filter(Boolean).join(' and ')}`;
+function tile(d,today,current){const count=records.releases.filter(r=>r.day===d.day).length;const state=dayStatus(d);const reset=d.reset_status==='confirmed';const isToday=d.day===current;const missed=dayMissed(records.days,d.day,today);const open=state==='pending'&&d.date<today&&!missed;const isFuture=d.date>today;
+const marks=count?(count<=4?`<span class="tile-dots">${'<i></i>'.repeat(count)}</span>`:`<span class="tile-many">×${count}</span>`):(isToday&&state==='pending'?'<span class="tile-today">Today</span>':open?'<span class="tile-today">Open</span>':'');
+const label=isFuture?'coming up':state==='pending'?(count?`in progress, ${plural(count,'feature')} so far`:isToday?'today, nothing yet':open?'still open, waiting for Tibo’s recap':'not verified'):`completed with ${[count?plural(count,'feature'):'',reset?'a usage reset':''].filter(Boolean).join(' and ')}`;
 return `<button class="day-tile ${state}${missed?' missed':''}${isToday?' current':''}${isFuture?' future':''}" data-day="${d.day}" aria-label="Day ${d.day}, ${dateLabel(d.date)}: ${esc(label)}"><span class="tile-number">${String(d.day).padStart(2,'0')}</span>${marks}${reset?`<span class="tile-reset">${RESET_ICON}</span>`:''}</button>`;}
 function render(){const summary=summarize(records.days,records.releases);$('#all-count').textContent=summary.totalReleases;$('#resets-count').textContent=summary.confirmedResets;
 const today=chicagoToday();const current=dayNumber(today);renderTug(today);

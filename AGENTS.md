@@ -21,27 +21,33 @@ The live site does **not** read data from this repo.
 - **Vercel preview deployments read the same production Supabase.** A PR that only edits `data/seed.json` changes nothing on the live site or in its own preview.
 - Writing to Supabase is live immediately, for everyone. There is no staging copy, so confirm data changes with Steven before writing.
 - `db/seed.sql` is generated from `data/seed.json` (`node scripts/seed-sql.mjs > db/seed.sql`). Its inserts use `on conflict do nothing`, so re-running it never updates existing rows. Use `update` statements for corrections.
-- A Codex automation outside this repo is meant to check Tibo's posts every four hours and write to Supabase. Its last check time is `sync_checked_at` inside `ship_happens_settings.content`. On October 7 its last check was 1:21 PM Central and nothing newer had run by 7 PM, so Day 3 had to be written by hand. Don't assume it's running; check that timestamp.
+- An agent outside this repo (GrokBot, using the X API and the Supabase plugin) checks Tibo's posts hourly and writes to Supabase on its own for clear cases. The earlier Codex automation is cancelled. The last check time is `sync_checked_at` inside `ship_happens_settings.content`; if it is stale, the agent isn't running, so write the day by hand. Its instructions are the source of truth for how it settles days; keep them consistent with this file.
 
 ### Schema rules the database enforces
 
 - `day` is 1 to 28, and `date` must equal 2026-10-05 plus (day - 1).
-- `ship_status` is `pending` or `verified`. `reset_status` is `unconfirmed`, `pending` or `confirmed`.
+- `ship_status` is `pending` or `verified`. `reset_status` is `unconfirmed`, `pending` or `confirmed`. Nothing uses `pending` any more: a reset is either confirmed by Tibo's final message or it isn't.
 - A `confirmed` reset needs `reset_source_url` matching `https://x.com/<handle>/status/<id>`.
 - Every release needs `source_url` in that same form. `product_url` is optional.
 - Release ids follow `day-<n>-<slug>`, for example `day-3-gpt6`.
 
 ## Adding a day's update
 
-1. Get the source. Every feature needs its own X post URL. A reset needs an explicit delivery post. Tibo's Day 3 post saying a banked reset was loading into every paid account counts; a poll, a promise or silence does not. If you can't open X, ask Steven for the post text or a screenshot.
-2. Pick the day. Days follow the Chicago calendar date of the post, and Tibo's own labels can lag: his "Day 3 (encore)" post landed at 1:38 AM Central on October 8, and Steven put it on Day 4. When the label and the date disagree, check with Steven.
-3. Write to Supabase after Steven confirms the wording:
-   - Insert one `ship_happens_releases` row per feature, with title, summary, an existing category (`Performance`, `Codex`, `ChatGPT` or `API`; each has its own pill color), `source_url` and optional `product_url`.
-   - **Leave the day open while it is still going.** Keep `ship_status='pending'` and only update the `note` (for example "The day is still in progress"). The feature still shows in the timeline and as a dot on a white tile, but the tile doesn't turn black and the tug of war doesn't score the day, because a reset could still land.
-   - **Close the day out once it's over** (or when Steven says to): set `ship_status='verified'` if a feature shipped, `reset_status='confirmed'` and `reset_source_url` if a reset was delivered, and a final `note`.
-   - Set `verified_at` in `ship_happens_settings.content` to today's date. Leave `sync_checked_at` to the update job.
+**A day isn't decided until Tibo's final message of the day.** He closes each day with a recap post that starts `Day N/`, names the big release, says whether the day goes to a reset, and ends with something like "See you again tomorrow!". Some days a poll lets people choose between a reset and keeping the feature; whatever Tibo announces in his final message is the result. A poll, a vote tally, a promise or silence is never the result, and a late hour never means "no reset".
+
+1. Get the source. Every feature needs its own X post URL. If you can't open X, ask Steven for the post text or a screenshot.
+2. Through the day, as Tibo announces features, insert one `ship_happens_releases` row per feature (title, summary, an existing category of `Performance`, `Codex`, `ChatGPT` or `API`, `source_url`, optional `product_url`). Leave the day row's statuses alone. If a poll appears, save its link in `poll_url`.
+3. When the final message appears, settle the day row and use that post as the source:
+   - Reset won (Tibo says the day goes to a reset, whether or not features also shipped): `reset_status='confirmed'`, `reset_source_url` = the final message URL, and `ship_status='verified'` if any feature shipped.
+   - Features won: `ship_status='verified'`, `reset_status='unconfirmed'`.
+   - Add a short `note`.
+   - If the final message is missing or unclear (nothing shipped and no reset, or no recap by noon Central the next day), don't invent an outcome; ask Steven.
 4. Verify the live feed: `curl -s https://ship-happens-rho.vercel.app/api/tracker` should show `"mode":"supabase"` and the new rows.
 5. Mirror the same data into `data/seed.json`, regenerate `db/seed.sql`, and update the hard-coded counts in `test/tracker.test.mjs` (the seed summary test) and `scripts/browser-smoke.mjs` (timeline card and source-link counts). Open a PR for that.
+
+The site never needs to be told who won the day: it scores a confirmed reset as Resets (even if features shipped) and otherwise a verified feature as Features. Keep recording every feature on a reset day.
+
+Which day a post belongs to: use the Central calendar date of the post. Tibo's `Day N/` label is a cross-check, not an override. He mislabels sometimes (a Codex Cloud post on October 8 called itself a Day 3 encore, which was a typo), so if the label and the date disagree, ask Steven.
 
 Writing style for notes and summaries: one or two plain sentences, in your own words, no hype. Say what changed for users. For Day 3, Steven asked the note to say that even with a big release, a reset still came; the live note reads "GPT-6 in ChatGPT was the big release, and we still got a reset…".
 
@@ -82,7 +88,7 @@ These came out of real feedback. Don't undo them without asking.
   - Black means the day is Completed (feature, reset or both). A day that is still open stays white with its dots, and screen readers hear "in progress".
   - One white dot per feature (up to four; five or more shows ×N).
   - A lime sticker with a refresh icon in the corner means a usage reset.
-  - The current day says "Today" until something lands. Past days with nothing verified get a dashed border.
+  - The current day says "Today" until something lands. A past day that Tibo hasn't settled yet says "Open" and keeps a plain border, because his recap can land after midnight. It only gets a dashed border once a later day has settled or the challenge is over (`dayMissed` in `lib/tracker.mjs`).
   - The legend reads "Completed, 1 dot = 1 feature, Usage reset, Not yet".
 - **Color has one meaning each.** Black and white for everything structural. Lime (`--reset`) is only for resets. Tan rope and red ribbon only in the tug of war. Category pills (Performance, ChatGPT, API, Codex) keep their pastel colors.
 - **Vocabulary.** Say "feature" in the UI (the data calls them releases), "usage reset" or "reset", and "Completed".
