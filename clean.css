@@ -17,3 +17,87 @@ summary.day-label{cursor:pointer;list-style:none;min-height:40px;margin-bottom:0
 details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}details.day-group:last-child{margin-bottom:0}
 
 .nav-button{border:0;background:none;padding:4px 0;color:#111;font-size:11px;white-space:nowrap}.nav-button:hover{text-decoration:underline}#agent-dialog{width:640px;max-width:calc(100% - 32px)}#agent-dialog h2{font-size:25px;margin:8px 0 12px}#agent-prompt{display:block;width:100%;height:310px;resize:vertical;border:1px solid #e4e4e4;border-radius:10px;padding:16px;background:#fafafa;color:#333;font:12px/1.6 var(--body)}.agent-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}.copy-button{background:#111;color:#fff;border:0;border-radius:7px;padding:10px 16px;font-size:12px}.copy-button:disabled{opacity:.6}#copy-status{color:#555;font-size:12px}@media(max-width:680px){.nav-button{font-size:10px}.topbar nav{flex-wrap:wrap}#agent-prompt{height:300px}}
+
+/* Shared icons and reset color */
+:root{--reset:#d5fa71;--reset-ink:#1d2a05;--reset-edge:#b5dc45;--rope:#c8995a;--rope-dark:#a8773d;--ribbon:#e5484d}
+.reset-icon,.arrow-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;display:block}
+.reset-icon{stroke-width:3.4}.arrow-icon{stroke-width:3}
+
+/* Hero: headline on top, the tug of war as one wide arena underneath */
+.hero{display:block;padding:44px 0 36px}
+.hero .hero-copy{max-width:none}
+.hero h1{margin:12px 0 0}
+.scoreboard.tug{display:block;margin:28px 0 0;padding:28px 32px 22px;border:1px solid #e9eaec;border-radius:22px;background:#f4f5f6;transform:none;box-shadow:none}
+.tug-board{display:grid;grid-template-columns:1fr minmax(0,auto) 1fr;grid-template-areas:"features center resets";align-items:end;gap:16px}
+.tug-team.features{grid-area:features}.tug-team.resets{grid-area:resets;text-align:right}
+.team-tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;line-height:1.3}
+.features .team-tag{background:#111;color:#fff}
+.resets .team-tag{background:var(--reset);color:var(--reset-ink);box-shadow:inset 0 0 0 1px var(--reset-edge)}
+.tug-team strong{display:block;margin:10px 0 2px;font-size:76px;font-weight:700;line-height:.9;letter-spacing:-3px;font-variant-numeric:tabular-nums;color:#111}
+.team-unit{display:block;font-size:13px;color:#666}
+.tug-center{grid-area:center;align-self:center;text-align:center;padding-bottom:8px}
+.tug-day{display:block;font-size:13px;font-weight:600;color:#666}
+.tug-verdict{margin:6px 0 0;font-size:28px;font-weight:700;letter-spacing:-.8px;line-height:1.15;color:#111;font-variant-numeric:tabular-nums}
+.tug-field{display:flex;align-items:center;margin:26px 0 22px}
+.tug-end{position:relative;z-index:1;display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border-radius:50%;font-size:19px;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.features-end{background:#111;color:#fff}
+.resets-end{background:var(--reset);color:var(--reset-ink);box-shadow:inset 0 0 0 1px var(--reset-edge)}
+.tug-rope{position:relative;flex:1;height:10px;margin:0 -4px;border-radius:5px;background:repeating-linear-gradient(-55deg,var(--rope) 0 5px,var(--rope-dark) 5px 10px);box-shadow:inset 0 -2px 0 #00000022}
+.tug-mid{position:absolute;left:50%;top:-16px;bottom:-16px;border-left:2px dashed #c9cbcf;transform:translateX(-1px)}
+.tug-knot{position:absolute;top:-6px;left:50%;width:12px;height:34px;margin-left:-6px;border-radius:3px;background:var(--ribbon);box-shadow:0 2px 4px #00000033;transition:left 1.6s cubic-bezier(.34,1.56,.64,1) .2s}
+.tug.lead-features .features-end,.tug.lead-resets .resets-end{transform:scale(1.14)}
+.tug-foot{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-top:16px;border-top:1px solid #e3e4e7}
+.tug-note,.tug-rule{margin:0;font-size:13px;line-height:1.45}
+.tug-note{color:#333;font-weight:600}
+.tug-rule{color:#777}
+@media(prefers-reduced-motion:reduce){.tug-knot,.tug-end{transition:none}}
+@media(max-width:680px){
+.hero{padding:30px 0 26px}
+.scoreboard.tug{margin-top:22px;padding:22px 18px 18px;border-radius:18px}
+.tug-board{grid-template-columns:1fr 1fr;grid-template-areas:"center center" "features resets";gap:18px 12px}
+.tug-center{padding:0}
+.tug-verdict{font-size:24px}
+.tug-team strong{font-size:56px;letter-spacing:-2px}
+.tug-field{margin:22px 0 18px}
+.tug-end{width:38px;height:38px;font-size:16px}
+.tug-foot{display:block}
+.tug-rule{margin-top:6px;font-size:12px}
+}
+
+/* Calendar tiles: dots for features, a sticker for resets */
+.legend{flex-wrap:wrap;align-items:center;font-size:11px;gap:8px 16px;color:#555}
+.legend i{width:12px;height:12px}
+.legend-ship{background:#111;border-radius:3px}
+.legend-dots{display:grid;place-items:center;border:1px solid #ccc;border-radius:3px}
+.legend-dots b{width:4px;height:4px;border-radius:50%;background:#111}
+.legend .legend-reset{display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:9px}
+.legend-pending{border:1px solid #ccc;border-radius:3px}
+.day-board{gap:10px}
+.day-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:58px;border-radius:8px;overflow:visible;color:#888;border-color:#e2e2e2}
+.day-tile .tile-number{font-size:15px;font-weight:700;line-height:1}
+.day-tile.missed{border-style:dashed;border-color:#c8c8c8}
+.tile-dots{display:flex;gap:4px}
+.tile-dots i{display:block;width:6px;height:6px;border-radius:50%;background:currentColor}
+.tile-many{font-size:10px;font-weight:700;line-height:1}
+.tile-today{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:#111;line-height:1}
+.tile-reset{position:absolute;top:-8px;right:-8px;z-index:1;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--reset);color:var(--reset-ink);border:2px solid #fff;box-shadow:0 1px 4px #00000033;font-size:11px}
+.day-tile.current{outline:2px solid #111;outline-offset:3px}
+.day-tile.current.pending{border-color:#111;color:#111}
+
+/* Timeline: match the reset sticker */
+.reset-badge{display:inline-flex;align-items:center;gap:5px;background:var(--reset);color:var(--reset-ink);border-color:var(--reset-edge)}
+.reset-badge .reset-icon{font-size:10px}
+.day-content>.reset-notice>span{background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:14px}
+
+@media(max-width:680px){
+.board-section .section-header{flex-direction:column;align-items:flex-start;gap:10px}
+.legend{font-size:10px;gap:6px 12px}
+.day-board{gap:8px}
+.day-tile{height:50px;gap:5px;border-radius:7px}
+.day-tile .tile-number{font-size:14px}
+.tile-dots{gap:3px}
+.tile-dots i{width:5px;height:5px}
+.tile-reset{width:19px;height:19px;top:-7px;right:-7px;font-size:10px}
+}
+.day-tile.reset{background:#111;color:#fff;border-color:#111}
+@media(max-width:680px){.tug.lead-features .features-end,.tug.lead-resets .resets-end{transform:scale(1.06)}}

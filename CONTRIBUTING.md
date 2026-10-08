@@ -2,6 +2,8 @@
 
 Small, focused pull requests are welcome. Open an issue for bugs or larger feature ideas.
 
+Using an AI agent? Point it at [AGENTS.md](AGENTS.md) first. It explains where the live data lives, how to add a day, and the design rules.
+
 Target `main`. Every change requires review by Steven (`@stozo04`). Approvals are dismissed when the PR changes. Direct pushes, force pushes, and deletion of `main` are blocked once GitHub branch protection is applied.
 
 ## Run checks

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { dayNumber, normalizeSourceUrl, summarize, dayStatus } from '../lib/tracker.mjs';
+import { dayNumber, normalizeSourceUrl, summarize, dayStatus, challengeProgress, tugOfWar } from '../lib/tracker.mjs';
 
 test('challenge boundaries and calendar dates are exact', () => {
   assert.equal(dayNumber('2026-10-05'), 1);
@@ -41,4 +41,34 @@ test('seed preserves all 28 dates and the five source-backed releases', async ()
   assert.equal(seed.releases.filter(release => release.day === 2).length, 4);
   assert.equal(seed.days[1].reset_status, 'confirmed');
   for (const release of seed.releases) assert.equal(normalizeSourceUrl(release.source_url), release.source_url);
+});
+
+test('the streak counts shipped days only and reports resets separately', () => {
+  const day = (n, ship, reset = 'unconfirmed') => ({ day: n, ship_status: ship, reset_status: reset });
+  const days = Array.from({ length: 28 }, (_, i) => day(i + 1, 'pending'));
+  days[0] = day(1, 'verified'); days[1] = day(2, 'verified', 'confirmed'); days[2] = day(3, 'verified', 'confirmed');
+  assert.deepEqual(challengeProgress(days, '2026-10-07'), { phase: 'live', day: 3, daysLeft: 25, shipped: 3, elapsed: 3, missed: 0, streak: 3, todayShipped: true, resetDays: [2, 3] });
+  assert.deepEqual(challengeProgress(days, '2026-10-08'), { phase: 'live', day: 4, daysLeft: 24, shipped: 3, elapsed: 3, missed: 0, streak: 3, todayShipped: false, resetDays: [2, 3] });
+  const missedDay = challengeProgress(days, '2026-10-09');
+  assert.equal(missedDay.missed, 1);
+  assert.equal(missedDay.streak, 0);
+  days[4] = day(5, 'pending', 'confirmed');
+  const resetOnly = challengeProgress(days, '2026-10-09');
+  assert.equal(resetOnly.streak, 0, 'a reset without a feature does not extend the shipping streak');
+  assert.deepEqual(resetOnly.resetDays, [2, 3, 5]);
+  assert.equal(challengeProgress(days, '2026-10-04').phase, 'upcoming');
+  assert.deepEqual(challengeProgress(days, '2026-11-02'), { phase: 'complete', day: 28, daysLeft: 0, shipped: 3, elapsed: 28, missed: 25, streak: 0, todayShipped: false, resetDays: [2, 3, 5] });
+});
+
+test('tug of war gives each day one point: a reset takes the day, otherwise features do', () => {
+  const day = (n, ship, reset = 'unconfirmed') => ({ day: n, ship_status: ship, reset_status: reset });
+  const days = Array.from({ length: 28 }, (_, i) => day(i + 1, 'pending'));
+  days[0] = day(1, 'verified'); days[1] = day(2, 'verified', 'confirmed'); days[2] = day(3, 'verified', 'confirmed');
+  assert.deepEqual(tugOfWar(days), { features: 1, resets: 2, lead: 1, leader: 'resets', knot: 63.3 });
+  days[3] = day(4, 'verified'); days[4] = day(5, 'verified');
+  assert.deepEqual(tugOfWar(days), { features: 3, resets: 2, lead: 1, leader: 'features', knot: 42 });
+  days[5] = day(6, 'pending', 'confirmed');
+  assert.equal(tugOfWar(days).leader, 'tie', 'a reset-only day still scores for resets');
+  assert.deepEqual(tugOfWar(days.map(d => day(d.day, 'pending'))), { features: 0, resets: 0, lead: 0, leader: 'tie', knot: 50 });
+  assert.equal(tugOfWar(days.map(d => day(d.day, 'verified'))).knot, 10, 'a shutout stops short of the end');
 });

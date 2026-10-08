@@ -55,7 +55,7 @@ try {
     assert.equal(categoryColors.length, 4);
     await page.locator('[data-filter=resets]').click();
     assert.equal(await page.locator('#timeline .reset-notice').count(), 2);
-    assert.equal(await page.locator('#reset-score').textContent(), '2');
+    assert.equal(await page.locator('#reset-days').textContent(), '2');
     await page.locator('[data-day="2"]').click();
     assert.equal(await page.locator('#day-detail .day-content > .release-card').count(), 4);
     assert.equal(await page.locator('#day-detail .day-content').evaluate(e=>getComputedStyle(e).borderRadius),viewport.width<681?'10px':'12px');
@@ -77,7 +77,7 @@ try {
     await page.route(new URL('/api/tracker',trackerUrl).href,route=>route.fulfill({json:confirmed}));
     await page.locator('#refresh').click();
     await page.waitForFunction(() => !document.querySelector('#refresh').disabled);
-    assert.equal(await page.locator('#reset-score').innerText(), '3');
+    assert.equal(await page.locator('#reset-days').innerText(), '3');
     assert.equal(await page.locator('#timeline .reset-badge').count(), 3);
     await page.locator('[data-filter=resets]').click();
     assert.equal(await page.locator('#timeline .reset-notice').count(), 3);
