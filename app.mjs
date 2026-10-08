@@ -13,7 +13,7 @@ function toast(text){$('#toast').textContent=text;$('#toast').classList.add('sho
 function releaseCard(r){return `<article class="release-card"><div class="release-heading"><h3>${esc(r.title)}</h3><span class="category ${esc(r.category.toLowerCase())}">${esc(r.category)}</span>${link(r.source_url,'<span class="source-x">𝕏</span> Source ↗')}</div><p>${esc(r.summary)}</p></article>`;}
 function resetNotice(d){if(d.reset_status==='confirmed')return `<article class="reset-notice"><span aria-hidden="true">${RESET_ICON}</span><div><strong>Reset confirmed</strong><p>${esc(d.note)}</p>${link(d.reset_source_url,'See the reset announcement ↗')}</div></article>`;return '';}
 function renderTug(today){const p=challengeProgress(records.days,today);const t=tugOfWar(records.days);const leader=t.leader==='features'?'Features':'Resets';const score=`${Math.max(t.features,t.resets)}–${Math.min(t.features,t.resets)}`;
-$('#feature-days').textContent=t.features;$('#reset-days').textContent=t.resets;
+$('#feature-days').textContent=t.features;$('#reset-days').textContent=t.resets;$('#feature-unit').textContent=t.features===1?'day won':'days won';$('#reset-unit').textContent=t.resets===1?'day won':'days won';
 $('#tug').classList.toggle('lead-features',t.leader==='features');$('#tug').classList.toggle('lead-resets',t.leader==='resets');
 $('#tug-day').textContent=p.phase==='upcoming'?'Starts Oct 5':p.phase==='complete'?'Final score':`Day ${p.day} of 28`;
 let verdict,note;
