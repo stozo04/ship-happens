@@ -88,3 +88,4 @@ details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}detail
 .tile-dots i{width:5px;height:5px}
 .tile-reset{width:19px;height:19px;top:-7px;right:-7px;font-size:10px}
 }
+.tug-rule{margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#777;line-height:1.45}

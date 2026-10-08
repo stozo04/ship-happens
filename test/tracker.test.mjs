@@ -60,10 +60,15 @@ test('the streak counts shipped days only and reports resets separately', () => 
   assert.deepEqual(challengeProgress(days, '2026-11-02'), { phase: 'complete', day: 28, daysLeft: 0, shipped: 3, elapsed: 28, missed: 25, streak: 0, todayShipped: false, resetDays: [2, 3, 5] });
 });
 
-test('tug of war pulls the knot toward whichever side has more', () => {
-  assert.deepEqual(tugOfWar(6, 2), { features: 6, resets: 2, lead: 4, leader: 'features', knot: 30 });
-  assert.deepEqual(tugOfWar(2, 6), { features: 2, resets: 6, lead: 4, leader: 'resets', knot: 70 });
-  assert.deepEqual(tugOfWar(3, 3), { features: 3, resets: 3, lead: 0, leader: 'tie', knot: 50 });
-  assert.deepEqual(tugOfWar(0, 0), { features: 0, resets: 0, lead: 0, leader: 'tie', knot: 50 });
-  assert.equal(tugOfWar(9, 0).knot, 10, 'a shutout stops short of the end');
+test('tug of war gives each day one point: a reset takes the day, otherwise features do', () => {
+  const day = (n, ship, reset = 'unconfirmed') => ({ day: n, ship_status: ship, reset_status: reset });
+  const days = Array.from({ length: 28 }, (_, i) => day(i + 1, 'pending'));
+  days[0] = day(1, 'verified'); days[1] = day(2, 'verified', 'confirmed'); days[2] = day(3, 'verified', 'confirmed');
+  assert.deepEqual(tugOfWar(days), { features: 1, resets: 2, lead: 1, leader: 'resets', knot: 63.3 });
+  days[3] = day(4, 'verified'); days[4] = day(5, 'verified');
+  assert.deepEqual(tugOfWar(days), { features: 3, resets: 2, lead: 1, leader: 'features', knot: 42 });
+  days[5] = day(6, 'pending', 'confirmed');
+  assert.equal(tugOfWar(days).leader, 'tie', 'a reset-only day still scores for resets');
+  assert.deepEqual(tugOfWar(days.map(d => day(d.day, 'pending'))), { features: 0, resets: 0, lead: 0, leader: 'tie', knot: 50 });
+  assert.equal(tugOfWar(days.map(d => day(d.day, 'verified'))).knot, 10, 'a shutout stops short of the end');
 });
