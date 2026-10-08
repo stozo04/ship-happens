@@ -30,7 +30,7 @@ try {
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#agent-dialog').evaluate(e=>e.open),false);
     assert.equal(await page.locator('[data-day]').count(), 28);
-    assert.equal(await page.locator('#timeline .release-card').count(), 6);
+    assert.equal(await page.locator('#timeline .release-card').count(), 7);
     const newest=page.locator('#timeline details').first();
     const older=page.locator('#timeline details').last();
     assert.equal(await newest.getAttribute('open'), '');
@@ -50,7 +50,7 @@ try {
     assert.equal(await page.locator('#timeline .release-card').isVisible(), true);
     await page.locator('#search').fill('');
     assert.equal(await page.locator('[data-save], [data-filter=saved], .verified, #release-heading').count(), 0);
-    assert.equal(await page.locator('#timeline .release-heading .source-link').count(), 5);
+    assert.equal(await page.locator('#timeline .release-heading .source-link').count(), 7);
     const categoryColors=await page.locator('#timeline .category').evaluateAll(items=>[...new Set(items.map(e=>getComputedStyle(e).backgroundColor))]);
     assert.equal(categoryColors.length, 4);
     await page.locator('[data-filter=resets]').click();
@@ -70,7 +70,7 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({path:`${outputDir}/live-${viewport.width}.png`,fullPage:true});
     assert.equal(await page.locator('.pending-badge').count(), 0);
-    const confirmed=JSON.parse(await readFile('data/seed.json','utf8'));
+    const confirmed=await page.evaluate(()=>fetch('/api/tracker').then(r=>r.json()));
     confirmed.days[0].reset_status='confirmed';
     confirmed.days[0].reset_source_url=confirmed.releases[0].source_url;
     confirmed.days[0].note='Confirmed reset fixture for browser verification.';

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { dayNumber, normalizeSourceUrl, summarize, dayStatus, challengeProgress, tugOfWar } from '../lib/tracker.mjs';
+import { dayNumber, normalizeSourceUrl, summarize, dayStatus, dayMissed, challengeProgress, tugOfWar } from '../lib/tracker.mjs';
 
 test('challenge boundaries and calendar dates are exact', () => {
   assert.equal(dayNumber('2026-10-05'), 1);
@@ -33,16 +32,6 @@ test('a day may ship and reset; missing ship and open polls are never resets', (
   assert.equal(dayStatus({ ship_status: 'pending', reset_status: 'confirmed' }), 'reset');
 });
 
-test('seed preserves all 28 dates and the five source-backed releases', async () => {
-  const seed = JSON.parse(await readFile(new URL('../data/seed.json', import.meta.url), 'utf8'));
-  assert.equal(seed.days.length, 28);
-  assert.deepEqual(seed.days.map(day => dayNumber(day.date)), Array.from({ length: 28 }, (_, i) => i + 1));
-  assert.deepEqual(summarize(seed.days, seed.releases), { shippedDays: 3, totalReleases: 6, confirmedResets: 2 });
-  assert.equal(seed.releases.filter(release => release.day === 2).length, 4);
-  assert.equal(seed.days[1].reset_status, 'confirmed');
-  for (const release of seed.releases) assert.equal(normalizeSourceUrl(release.source_url), release.source_url);
-});
-
 test('the streak counts shipped days only and reports resets separately', () => {
   const day = (n, ship, reset = 'unconfirmed') => ({ day: n, ship_status: ship, reset_status: reset });
   const days = Array.from({ length: 28 }, (_, i) => day(i + 1, 'pending'));
@@ -71,4 +60,16 @@ test('tug of war gives each day one point: a reset takes the day, otherwise feat
   assert.equal(tugOfWar(days).leader, 'tie', 'a reset-only day still scores for resets');
   assert.deepEqual(tugOfWar(days.map(d => day(d.day, 'pending'))), { features: 0, resets: 0, lead: 0, leader: 'tie', knot: 50 });
   assert.equal(tugOfWar(days.map(d => day(d.day, 'verified'))).knot, 10, 'a shutout stops short of the end');
+});
+
+test('a past day stays open until a later day settles or the challenge ends', () => {
+  const days = Array.from({ length: 28 }, (_, i) => ({ day: i + 1, date: new Date(Date.UTC(2026, 9, 5 + i)).toISOString().slice(0, 10), ship_status: 'pending', reset_status: 'unconfirmed' }));
+  days[0].ship_status = 'verified';
+  assert.equal(dayMissed(days, 2, '2026-10-06'), false);
+  assert.equal(dayMissed(days, 2, '2026-10-07'), false, 'recap can land after midnight');
+  days[2].ship_status = 'verified';
+  assert.equal(dayMissed(days, 2, '2026-10-08'), true, 'a later day settled, so day 2 is missed');
+  assert.equal(dayMissed(days, 1, '2026-10-08'), false, 'settled days are never missed');
+  assert.equal(dayMissed(days, 28, '2026-11-01'), false);
+  assert.equal(dayMissed(days, 28, '2026-11-02'), true, 'unsettled days are missed once the challenge is over');
 });

@@ -9,7 +9,7 @@ Response fields:
 - challenge: dates, total_days, verified_at and, when available, sync_checked_at.
 - days: 28 records with day, date, ship_status, reset_status, reset_source_url, poll_url and note.
 - releases: individual features with id, day, title, summary, category and source_url. Join releases.day to days.day. Keep every release; multiple features can ship on the same day.
-- mode: supabase means stored production records; snapshot means the bundled fallback. Check warning for storage failures. This feed is periodically maintained, not a live connection to X.
+- mode: supabase means stored production records. If storage is down the API returns HTTP 503 with an error message and no records; say you could not get the data instead of guessing. This feed is periodically maintained, not a live connection to X.
 
 A delivered reset exists only when reset_status is confirmed. Use reset_source_url as its receipt. Pending/unconfirmed states, polls, missing releases, and absent updates do not establish a reset. A day can contain both releases and a confirmed reset.
 
