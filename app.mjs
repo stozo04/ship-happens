@@ -1,4 +1,4 @@
-import {dayStatus,summarize,normalizeSourceUrl,dayNumber,challengeProgress} from './lib/tracker.mjs';
+import {dayStatus,summarize,normalizeSourceUrl,dayNumber,challengeProgress,tugOfWar} from './lib/tracker.mjs';
 const $ = selector => document.querySelector(selector);
 const expandedDays=new Map();
 let records,filter='all',query='',mode='snapshot',warning='',toastTimer;
@@ -12,23 +12,20 @@ function link(url,text,cls='source-link'){const safe=source(url);return safe?`<a
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2800);}
 function releaseCard(r){return `<article class="release-card"><div class="release-heading"><h3>${esc(r.title)}</h3><span class="category ${esc(r.category.toLowerCase())}">${esc(r.category)}</span>${link(r.source_url,'<span class="source-x">𝕏</span> Source ↗')}</div><p>${esc(r.summary)}</p></article>`;}
 function resetNotice(d){if(d.reset_status==='confirmed')return `<article class="reset-notice"><span aria-hidden="true">${RESET_ICON}</span><div><strong>Reset confirmed</strong><p>${esc(d.note)}</p>${link(d.reset_source_url,'See the reset announcement ↗')}</div></article>`;return '';}
-function dayList(list){if(!list.length)return 'None yet';if(list.length>4)return `On ${list.length} days`;return `${list.length===1?'Day':'Days'} ${list.length===1?list[0]:`${list.slice(0,-1).join(', ')} & ${list.at(-1)}`}`;}
-function renderProgress(today){const p=challengeProgress(records.days,today);let icon='🔥',title,sub;
-if(p.phase==='upcoming'){icon='⏳';title='Starts Oct 5';sub='28 days of new features.';}
-else if(p.phase==='complete'){icon=p.missed?'🏁':'🏆';title=p.missed?`Shipped ${p.shipped} of 28 days`:'28-day shipping streak';sub=p.missed?'The challenge is over.':'A new feature every single day.';}
-else if(!p.missed){if(p.streak){title=`${p.streak}-day shipping streak`;sub=p.todayShipped?'A new feature every day so far.':'A new feature every day. Today’s is still cooking.';}else{icon='⏳';title='Day 1 is cooking';sub='The first feature lands today.';}}
-else{icon='📦';title=`Shipped ${p.shipped} of ${p.elapsed} days`;sub=p.streak?`Current shipping streak: ${plural(p.streak,'day')}.`:'Waiting on today’s feature.';}
-$('#reset-days').textContent=dayList(p.resetDays);
-$('#streak-icon').textContent=icon;$('#streak-title').textContent=title;$('#streak-sub').textContent=sub;
-$('#progress-day').textContent=p.phase==='upcoming'?'Starts Oct 5':p.phase==='complete'?'All 28 days done':`Day ${p.day} of 28`;
-$('#progress-left').textContent=p.phase==='live'?(p.daysLeft?`${plural(p.daysLeft,'day')} to go`:'Final day'):p.phase==='upcoming'?'28 days to go':'';
-$('#progress-bar').style.width=`${p.day/28*100}%`;}
+function renderTug(today,summary){const p=challengeProgress(records.days,today);const t=tugOfWar(summary.totalReleases,summary.confirmedResets);const leader=t.leader==='features'?'Features':'Resets';
+$('#tug').classList.toggle('lead-features',t.leader==='features');$('#tug').classList.toggle('lead-resets',t.leader==='resets');
+$('#tug-day').textContent=p.phase==='upcoming'?'Starts Oct 5':p.phase==='complete'?'Final score':`Day ${p.day} of 28`;
+let verdict,note;
+if(p.phase==='complete'){verdict=t.leader==='tie'?`It’s a tie, ${t.features} to ${t.resets}`:`🏆 ${leader} win, ${Math.max(t.features,t.resets)} to ${Math.min(t.features,t.resets)}`;note='Final score after 28 days.';}
+else{verdict=!(t.features+t.resets)?'Nobody’s pulled yet':t.leader==='tie'?`Dead even at ${t.features}`:`${leader} lead by ${t.lead}`;note=p.phase==='upcoming'?'28 days to pull. Winner decided Nov 1.':p.daysLeft?`${plural(p.daysLeft,'day')} left to pull. Winner decided Nov 1.`:'Final day. Winner decided tonight.';}
+$('#tug-verdict').textContent=verdict;$('#tug-note').textContent=note;
+requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#tug-knot').style.left=`${t.knot}%`;}));}
 function tile(d,today,current){const count=records.releases.filter(r=>r.day===d.day).length;const state=dayStatus(d);const reset=d.reset_status==='confirmed';const isToday=d.day===current;const missed=state==='pending'&&d.date<today&&!isToday;
 const marks=count?(count<=4?`<span class="tile-dots">${'<i></i>'.repeat(count)}</span>`:`<span class="tile-many">×${count}</span>`):(isToday&&state==='pending'?'<span class="tile-today">Today</span>':'');
 const label=state==='pending'?(isToday?'today, nothing yet':d.date>today?'coming up':'not verified'):[count?plural(count,'feature'):'',reset?'usage reset':''].filter(Boolean).join(' and ');
 return `<button class="day-tile ${state}${missed?' missed':''}${isToday?' current':''}" data-day="${d.day}" aria-label="Day ${d.day}, ${dateLabel(d.date)}: ${esc(label)}"><span class="tile-number">${String(d.day).padStart(2,'0')}</span>${marks}${reset?`<span class="tile-reset">${RESET_ICON}</span>`:''}</button>`;}
 function render(){const summary=summarize(records.days,records.releases);$('#release-score').textContent=summary.totalReleases;$('#reset-score').textContent=summary.confirmedResets;$('#all-count').textContent=summary.totalReleases;
-const today=chicagoToday();const current=dayNumber(today);renderProgress(today);
+const today=chicagoToday();const current=dayNumber(today);renderTug(today,summary);
 $('#day-board').innerHTML=records.days.map(d=>tile(d,today,current)).join('');renderTimeline();renderStatus();}
 function renderStatus(){const checked=records.challenge.verified_at;const status=mode==='supabase'?`Updated ${checked}`:`Snapshot · ${checked}`;$('#data-status').textContent=warning?`${status}. ${warning}`:status;}
 function activityBadges(d,count){return `<span class="day-activity">${count?`<span class="activity-badge feature-badge">↗ ${count} feature${count===1?'':'s'}</span>`:''}${d.reset_status==='confirmed'?`<span class="activity-badge reset-badge">${RESET_ICON} Usage reset</span>`:''}</span>`;}

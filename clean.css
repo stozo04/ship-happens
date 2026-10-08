@@ -18,25 +18,37 @@ details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}detail
 
 .nav-button{border:0;background:none;padding:4px 0;color:#111;font-size:11px;white-space:nowrap}.nav-button:hover{text-decoration:underline}#agent-dialog{width:640px;max-width:calc(100% - 32px)}#agent-dialog h2{font-size:25px;margin:8px 0 12px}#agent-prompt{display:block;width:100%;height:310px;resize:vertical;border:1px solid #e4e4e4;border-radius:10px;padding:16px;background:#fafafa;color:#333;font:12px/1.6 var(--body)}.agent-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}.copy-button{background:#111;color:#fff;border:0;border-radius:7px;padding:10px 16px;font-size:12px}.copy-button:disabled{opacity:.6}#copy-status{color:#555;font-size:12px}@media(max-width:680px){.nav-button{font-size:10px}.topbar nav{flex-wrap:wrap}#agent-prompt{height:300px}}
 
-/* Scoreboard: streak, day progress, and stat chips */
-:root{--reset:#d5fa71;--reset-ink:#1d2a05;--reset-edge:#b5dc45}
-.reset-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;display:block}
-.scoreboard{display:flex;flex-direction:column;align-items:stretch;gap:18px;padding:4px 0 4px 32px}
-.streak{display:flex;align-items:center;gap:14px}
-.streak-icon{display:grid;place-items:center;flex-shrink:0;width:52px;height:52px;border-radius:16px;background:#f4f4f4;font-size:30px;line-height:1}
-.streak strong{display:block;font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.1;color:#111}
-.streak span:not(.streak-icon){display:block;margin-top:4px;font-size:13px;color:#555;line-height:1.4}
-.progress-label{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:7px;font-size:12px;color:#666}
-.progress-label strong{font-size:13px;font-weight:700;color:#111}
-.scoreboard .progress-track{display:block;height:10px;background:#efefef;border-radius:99px;overflow:hidden}
-.scoreboard .progress-track>div{height:100%;background:#111;border-radius:99px;transition:width .6s ease}
-.scoreboard .score-bottom{display:flex;flex-wrap:wrap;gap:10px;margin:0}
-.stat-chip{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;padding:8px 14px 8px 8px;border:1px solid #e4e4e4;border-radius:999px;background:#fff}
-.stat-chip strong{font-size:18px!important;font-weight:700;color:#111;line-height:1}
-.stat-chip>span:last-child{font-size:12px!important;color:#555!important;margin:0!important}
-.chip-icon{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;font-size:14px;font-weight:700;flex-shrink:0}
-.feature-icon{background:#111;color:#fff}
-.reset-icon-wrap{background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:13px}
+/* Shared icons and reset color */
+:root{--reset:#d5fa71;--reset-ink:#1d2a05;--reset-edge:#b5dc45;--rope:#c8995a;--rope-dark:#a8773d;--ribbon:#e5484d}
+.reset-icon,.arrow-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;display:block}
+.reset-icon{stroke-width:3.4}.arrow-icon{stroke-width:3}
+
+/* Tug of war: features pull left, resets pull right */
+.scoreboard.tug{display:block;padding:4px 0 4px 32px}
+.tug-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#777}
+.tug-day{font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:#111}
+.tug-scores{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:8px}
+.tug-team strong{display:block;font-size:46px;font-weight:700;line-height:1;letter-spacing:-2px;color:#111;transition:transform .3s}
+.tug-team span{display:block;margin-top:4px;font-size:12px;font-weight:600;color:#555}
+.tug-team.resets{text-align:right}
+.tug-vs{padding-bottom:22px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#aaa}
+.tug-field{display:flex;align-items:center;margin:14px 0 14px}
+.tug-end{position:relative;z-index:1;display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:50%;font-size:16px;transition:transform .3s}
+.features-end{background:#111;color:#fff}
+.resets-end{background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge)}
+.tug-rope{position:relative;flex:1;height:9px;margin:0 -3px;border-radius:5px;background:repeating-linear-gradient(-55deg,var(--rope) 0 4px,var(--rope-dark) 4px 8px);box-shadow:inset 0 -1px 0 #00000026}
+.tug-mid{position:absolute;left:50%;top:-14px;bottom:-14px;border-left:2px dashed #d0d0d0;transform:translateX(-1px)}
+.tug-knot{position:absolute;top:-4px;left:50%;width:10px;height:28px;margin-left:-5px;border-radius:2px;background:var(--ribbon);box-shadow:0 1px 3px #00000040;transition:left 1.4s cubic-bezier(.34,1.56,.64,1)}
+.tug.lead-features .tug-knot{animation:tug-left 1.8s ease-in-out infinite 1.4s}
+.tug.lead-resets .tug-knot{animation:tug-right 1.8s ease-in-out infinite 1.4s}
+.tug.lead-features .features-end,.tug.lead-resets .resets-end{transform:scale(1.12)}
+.tug.lead-features .tug-team.features strong,.tug.lead-resets .tug-team.resets strong{transform:scale(1.06)}
+.tug.lead-features .tug-team.features strong{transform-origin:left bottom}.tug.lead-resets .tug-team.resets strong{transform-origin:right bottom}
+@keyframes tug-left{0%,100%{translate:0}50%{translate:-3px}}
+@keyframes tug-right{0%,100%{translate:0}50%{translate:3px}}
+.tug-verdict{margin:0;font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1.25;color:#111}
+.tug-note{margin:4px 0 0;font-size:12px;color:#666}
+@media(prefers-reduced-motion:reduce){.tug-knot{transition:none;animation:none!important}.tug-end,.tug-team strong{transition:none}}
 
 /* Calendar tiles: dots for features, a sticker for resets */
 .legend{flex-wrap:wrap;align-items:center;font-size:11px;gap:8px 16px;color:#555}
@@ -64,10 +76,9 @@ details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}detail
 .day-content>.reset-notice>span{background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:14px}
 
 @media(max-width:680px){
-.scoreboard{margin:26px 0 0;padding:20px;gap:16px;border:1px solid #e8e8e8;border-radius:16px}
-.streak-icon{width:46px;height:46px;font-size:26px;border-radius:14px}
-.streak strong{font-size:25px}
-.streak span:not(.streak-icon){font-size:12px}
+.scoreboard.tug{margin:26px 0 0;padding:20px;border:1px solid #e8e8e8;border-radius:16px}
+.tug-team strong{font-size:40px}
+.tug-verdict{font-size:18px}
 .board-section .section-header{flex-direction:column;align-items:flex-start;gap:10px}
 .legend{font-size:10px;gap:6px 12px}
 .day-board{gap:8px}
@@ -77,16 +88,3 @@ details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}detail
 .tile-dots i{width:5px;height:5px}
 .tile-reset{width:19px;height:19px;top:-7px;right:-7px;font-size:10px}
 }
-.arrow-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;display:block}
-.feature-icon{font-size:13px}
-@media(max-width:680px){
-.scoreboard .score-bottom{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stat-chip{padding:8px 10px 8px 8px;border-radius:14px;gap:7px}
-.stat-chip strong{font-size:17px!important}
-.stat-chip>span:last-child{font-size:11px!important;line-height:1.2}
-.chip-icon{width:24px;height:24px}
-}
-.score-bottom .chip-icon{font-size:14px;margin:0;color:inherit}.score-bottom .feature-icon{color:#fff}.score-bottom .reset-icon-wrap{color:var(--reset-ink);font-size:13px}
-.stat-chip .chip-text{display:flex;flex-direction:column;line-height:1.2}
-.stat-chip .chip-text small{font-size:11px;font-weight:600;color:#111;margin-top:2px}
-@media(max-width:680px){.streak strong{font-size:22px;letter-spacing:-.6px}.stat-chip .chip-text small{font-size:10px}}

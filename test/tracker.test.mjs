@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { dayNumber, normalizeSourceUrl, summarize, dayStatus, challengeProgress } from '../lib/tracker.mjs';
+import { dayNumber, normalizeSourceUrl, summarize, dayStatus, challengeProgress, tugOfWar } from '../lib/tracker.mjs';
 
 test('challenge boundaries and calendar dates are exact', () => {
   assert.equal(dayNumber('2026-10-05'), 1);
@@ -58,4 +58,12 @@ test('the streak counts shipped days only and reports resets separately', () => 
   assert.deepEqual(resetOnly.resetDays, [2, 3, 5]);
   assert.equal(challengeProgress(days, '2026-10-04').phase, 'upcoming');
   assert.deepEqual(challengeProgress(days, '2026-11-02'), { phase: 'complete', day: 28, daysLeft: 0, shipped: 3, elapsed: 28, missed: 25, streak: 0, todayShipped: false, resetDays: [2, 3, 5] });
+});
+
+test('tug of war pulls the knot toward whichever side has more', () => {
+  assert.deepEqual(tugOfWar(6, 2), { features: 6, resets: 2, lead: 4, leader: 'features', knot: 30 });
+  assert.deepEqual(tugOfWar(2, 6), { features: 2, resets: 6, lead: 4, leader: 'resets', knot: 70 });
+  assert.deepEqual(tugOfWar(3, 3), { features: 3, resets: 3, lead: 0, leader: 'tie', knot: 50 });
+  assert.deepEqual(tugOfWar(0, 0), { features: 0, resets: 0, lead: 0, leader: 'tie', knot: 50 });
+  assert.equal(tugOfWar(9, 0).knot, 10, 'a shutout stops short of the end');
 });
