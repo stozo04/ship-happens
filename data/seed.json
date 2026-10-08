@@ -8,7 +8,7 @@
     "handle": "thsottiaux",
     "source_url": "https://x.com/thsottiaux/status/2106845241357824205",
     "rule": "Each day, ship a clear improvement relevant to most Codex and Work users or deliver a full usage reset. A day can include multiple releases and a reset.",
-    "verified_at": "2026-10-07",
+    "verified_at": "2026-10-08",
     "reset_note": "Reset delivery requires an explicit source. Poll votes and missing updates do not confirm a reset."
   },
   "days": [
@@ -46,7 +46,7 @@
       "reset_status": "unconfirmed",
       "reset_source_url": null,
       "poll_url": null,
-      "note": "Awaiting source-backed updates."
+      "note": "Codex Cloud re-shipped early (Tibo labeled it a Day 3 encore). The day is still in progress."
     },
     {
       "day": 5,
@@ -319,6 +319,15 @@
       "category": "ChatGPT",
       "source_url": "https://x.com/thsottiaux/status/2107913674593644711",
       "product_url": "https://x.com/sama/status/2107924408597950702"
+    },
+    {
+      "id": "day-4-codex-cloud",
+      "day": 4,
+      "title": "Codex Cloud, re-shipped",
+      "summary": "Codex Cloud was quietly re-shipped. It can now connect securely to resources on your tailnet through Tailscale.",
+      "category": "Codex",
+      "source_url": "https://x.com/thsottiaux/status/2108084615349170480",
+      "product_url": null
     }
   ]
 }
