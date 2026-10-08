@@ -17,10 +17,9 @@ An independent tracker for Tibo's 28-day Codex & Work challenge, October 5 to No
 The live site does **not** read data from this repo.
 
 - `api/tracker.js` reads three tables from Supabase: `ship_happens_days`, `ship_happens_releases` and `ship_happens_settings`. They sit in a shared Supabase project, so only touch `ship_happens_*` tables. Find the project with the Supabase connector by looking for those tables, or ask Steven. Storage details were deliberately removed from the README (PR #5), so don't add project names, refs or keys to the repo.
-- `data/seed.json` is a fallback snapshot. The API serves it only when Supabase env vars are missing or storage fails. The page then labels it "Snapshot".
-- **Vercel preview deployments read the same production Supabase.** A PR that only edits `data/seed.json` changes nothing on the live site or in its own preview.
+- There is no fallback copy of the data. If Supabase env vars are missing or storage fails, `/api/tracker` returns HTTP 503 with no records and the page says live data is unavailable. This is deliberate: a stale snapshot would show wrong scores. `db/schema.sql` creates the tables plus 28 empty day rows and the settings row for a fresh project.
+- **Vercel preview deployments read the same production Supabase**, so a preview shows live data and a data-only change needs no PR.
 - Writing to Supabase is live immediately, for everyone. There is no staging copy, so confirm data changes with Steven before writing.
-- `db/seed.sql` is generated from `data/seed.json` (`node scripts/seed-sql.mjs > db/seed.sql`). Its inserts use `on conflict do nothing`, so re-running it never updates existing rows. Use `update` statements for corrections.
 - An agent outside this repo (GrokBot, using the X API and the Supabase plugin) checks Tibo's posts hourly and writes to Supabase on its own for clear cases. The earlier Codex automation is cancelled. The last check time is `sync_checked_at` inside `ship_happens_settings.content`; if it is stale, the agent isn't running, so write the day by hand. Its instructions are the source of truth for how it settles days; keep them consistent with this file.
 
 ### Schema rules the database enforces
@@ -43,7 +42,6 @@ The live site does **not** read data from this repo.
    - Add a short `note`.
    - If the final message is missing or unclear (nothing shipped and no reset, or no recap by noon Central the next day), don't invent an outcome; ask Steven.
 4. Verify the live feed: `curl -s https://ship-happens-rho.vercel.app/api/tracker` should show `"mode":"supabase"` and the new rows.
-5. Mirror the same data into `data/seed.json`, regenerate `db/seed.sql`, and update the hard-coded counts in `test/tracker.test.mjs` (the seed summary test) and `scripts/browser-smoke.mjs` (timeline card and source-link counts). Open a PR for that.
 
 The site never needs to be told who won the day: it scores a confirmed reset as Resets (even if features shipped) and otherwise a verified feature as Features. Keep recording every feature on a reset day.
 
@@ -51,9 +49,9 @@ Which day a post belongs to: use the Central calendar date of the post. Tibo's `
 
 Writing style for notes and summaries: one or two plain sentences, in your own words, no hype. Say what changed for users. For Day 3, Steven asked the note to say that even with a big release, a reset still came; the live note reads "GPT-6 in ChatGPT was the big release, and we still got a reset…".
 
-### Known data mismatch (unresolved)
+### Open question
 
-Day 2's reset source differs. Supabase links `…/2107676072871600470`; `data/seed.json` links `…/2107578625419866469` with different note wording. Supabase is what users see. Ask Steven which post is right before syncing either side.
+Day 2's reset links `…/2107676072871600470` in Supabase. An older snapshot (now deleted) linked `…/2107578625419866469`. Ask Steven which post is right before changing it.
 
 ## How the app is built
 
@@ -64,7 +62,7 @@ Day 2's reset source differs. Supabase links `…/2107676072871600470`; `data/se
 | `lib/tracker.mjs` | Pure logic with tests: `dayNumber`, `normalizeSourceUrl`, `summarize`, `dayStatus`, `challengeProgress`, `tugOfWar`. Put new logic here, not in `app.mjs`. |
 | `clean.css` | The active design. It sits on top of `styles.css` and overrides it. |
 | `styles.css` | Old dark-theme base layer. Don't restyle things here; override in `clean.css`. |
-| `api/tracker.js` | Serverless reader for Supabase with the snapshot fallback. |
+| `api/tracker.js` | Serverless reader for Supabase. Returns 503 when storage is unavailable. |
 | `scripts/build.mjs` | Copies a **fixed list** of files into `dist/`. A new top-level file must be added to that list or it won't deploy. |
 | `scripts/browser-smoke.mjs` | Optional Playwright checks, not run in CI. Its expected counts are tied to current data. It launches Chrome; in a cloud session, run a scratch copy with `executablePath` set to the preinstalled Chromium, the session proxy, `ignoreHTTPSErrors`, `LOCAL_BUILD=1` and `PLAYWRIGHT_MODULE` pointing at an installed Playwright. |
 | `llms.txt` | Guide for outside agents using the JSON feed. Update it if the feed's shape changes. |

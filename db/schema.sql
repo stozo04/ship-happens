@@ -33,3 +33,11 @@ grant select,insert,update,delete on public.ship_happens_settings, public.ship_h
 create policy "Public challenge settings" on public.ship_happens_settings for select to anon,authenticated using(true);
 create policy "Public challenge days" on public.ship_happens_days for select to anon,authenticated using(true);
 create policy "Public challenge releases" on public.ship_happens_releases for select to anon,authenticated using(true);
+
+-- Starting rows for a fresh project: 28 empty days and the challenge settings.
+-- Safe to re-run; existing rows are left alone.
+insert into public.ship_happens_days(day,date,ship_status,reset_status,note)
+select n, date '2026-10-05' + (n - 1), 'pending', 'unconfirmed', 'Awaiting source-backed updates.' from generate_series(1,28) n
+on conflict (day) do nothing;
+insert into public.ship_happens_settings(id,content) values ('main','{"rule":"Each day, ship a clear improvement relevant to most Codex and Work users or deliver a full usage reset. A day can include multiple releases and a reset.","title":"Ship Happens","handle":"thsottiaux","creator":"Tibo","end_date":"2026-11-01","reset_note":"A day is settled by Tibo\u2019s final message. Poll votes and missing updates do not confirm a reset.","source_url":"https://x.com/thsottiaux/status/2106845241357824205","start_date":"2026-10-05","total_days":28,"verified_at":"2026-10-05"}'::jsonb)
+on conflict (id) do nothing;

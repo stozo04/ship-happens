@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { dayNumber, normalizeSourceUrl, summarize, dayStatus, dayMissed, challengeProgress, tugOfWar } from '../lib/tracker.mjs';
 
 test('challenge boundaries and calendar dates are exact', () => {
@@ -31,16 +30,6 @@ test('a day may ship and reset; missing ship and open polls are never resets', (
   assert.equal(dayStatus(days[1]), 'shipped-and-reset');
   assert.equal(dayStatus(days[2]), 'pending');
   assert.equal(dayStatus({ ship_status: 'pending', reset_status: 'confirmed' }), 'reset');
-});
-
-test('seed preserves all 28 dates and every source-backed release', async () => {
-  const seed = JSON.parse(await readFile(new URL('../data/seed.json', import.meta.url), 'utf8'));
-  assert.equal(seed.days.length, 28);
-  assert.deepEqual(seed.days.map(day => dayNumber(day.date)), Array.from({ length: 28 }, (_, i) => i + 1));
-  assert.deepEqual(summarize(seed.days, seed.releases), { shippedDays: 3, totalReleases: 7, confirmedResets: 2 });
-  assert.equal(seed.releases.filter(release => release.day === 2).length, 4);
-  assert.equal(seed.days[1].reset_status, 'confirmed');
-  for (const release of seed.releases) assert.equal(normalizeSourceUrl(release.source_url), release.source_url);
 });
 
 test('the streak counts shipped days only and reports resets separately', () => {

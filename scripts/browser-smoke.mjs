@@ -70,7 +70,7 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({path:`${outputDir}/live-${viewport.width}.png`,fullPage:true});
     assert.equal(await page.locator('.pending-badge').count(), 0);
-    const confirmed=JSON.parse(await readFile('data/seed.json','utf8'));
+    const confirmed=await page.evaluate(()=>fetch('/api/tracker').then(r=>r.json()));
     confirmed.days[0].reset_status='confirmed';
     confirmed.days[0].reset_source_url=confirmed.releases[0].source_url;
     confirmed.days[0].note='Confirmed reset fixture for browser verification.';

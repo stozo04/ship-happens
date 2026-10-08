@@ -1,7 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/tracker.js';
-import seed from '../data/seed.json' with { type: 'json' };
 function response(){return {statusCode:200,headers:{},status(n){this.statusCode=n;return this;},setHeader(k,v){this.headers[k]=v;},json(body){this.body=body;return this;}};}
-test('unconfigured storage returns an explicitly labelled verified snapshot',async()=>{const res=response();await handler({method:'GET'},res);assert.equal(res.statusCode,200);assert.equal(res.body.mode,'snapshot');assert.equal(res.body.days.length,28);assert.equal(res.body.releases.length,seed.releases.length);assert.equal(res.headers['Cache-Control'],'no-store');});
+test('unconfigured storage fails closed and never serves stale data',async()=>{delete process.env.SUPABASE_URL;delete process.env.SUPABASE_PUBLISHABLE_KEY;const res=response();await handler({method:'GET'},res);assert.equal(res.statusCode,503);assert.equal(res.body.days,undefined);assert.equal(res.headers['Cache-Control'],'no-store');});
 test('public API does not accept writes',async()=>{const res=response();await handler({method:'POST'},res);assert.equal(res.statusCode,405);assert.equal(res.body.error,'Method not allowed');});
