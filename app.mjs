@@ -12,11 +12,13 @@ function link(url,text,cls='source-link'){const safe=source(url);return safe?`<a
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2800);}
 function releaseCard(r){return `<article class="release-card"><div class="release-heading"><h3>${esc(r.title)}</h3><span class="category ${esc(r.category.toLowerCase())}">${esc(r.category)}</span>${link(r.source_url,'<span class="source-x">𝕏</span> Source ↗')}</div><p>${esc(r.summary)}</p></article>`;}
 function resetNotice(d){if(d.reset_status==='confirmed')return `<article class="reset-notice"><span aria-hidden="true">${RESET_ICON}</span><div><strong>Reset confirmed</strong><p>${esc(d.note)}</p>${link(d.reset_source_url,'See the reset announcement ↗')}</div></article>`;return '';}
+function dayList(list){if(!list.length)return 'None yet';if(list.length>4)return `On ${list.length} days`;return `${list.length===1?'Day':'Days'} ${list.length===1?list[0]:`${list.slice(0,-1).join(', ')} & ${list.at(-1)}`}`;}
 function renderProgress(today){const p=challengeProgress(records.days,today);let icon='🔥',title,sub;
-if(p.phase==='upcoming'){icon='⏳';title='Starts Oct 5';sub='28 days. Something new every day.';}
-else if(p.phase==='complete'){icon=p.missed?'🏁':'🏆';title=p.missed?`${p.delivered} of 28 days delivered`:'28 for 28';sub=p.missed?'The challenge is over.':'A perfect run. Not one day missed.';}
-else if(!p.missed){if(p.streak){title=`${p.streak}-day streak`;sub=p.todayDelivered?'Not a single day missed.':'Not a day missed. Today’s drop is still cooking.';}else{icon='⏳';title='Day 1 is cooking';sub='The first drop lands today.';}}
-else{icon='📦';title=`${p.delivered} of ${p.elapsed} days delivered`;sub=p.streak?`Current streak: ${plural(p.streak,'day')}.`:p.todayDelivered?'Back on the board.':'Waiting on today’s drop.';}
+if(p.phase==='upcoming'){icon='⏳';title='Starts Oct 5';sub='28 days of new features.';}
+else if(p.phase==='complete'){icon=p.missed?'🏁':'🏆';title=p.missed?`Shipped ${p.shipped} of 28 days`:'28-day shipping streak';sub=p.missed?'The challenge is over.':'A new feature every single day.';}
+else if(!p.missed){if(p.streak){title=`${p.streak}-day shipping streak`;sub=p.todayShipped?'A new feature every day so far.':'A new feature every day. Today’s is still cooking.';}else{icon='⏳';title='Day 1 is cooking';sub='The first feature lands today.';}}
+else{icon='📦';title=`Shipped ${p.shipped} of ${p.elapsed} days`;sub=p.streak?`Current shipping streak: ${plural(p.streak,'day')}.`:'Waiting on today’s feature.';}
+$('#reset-days').textContent=dayList(p.resetDays);
 $('#streak-icon').textContent=icon;$('#streak-title').textContent=title;$('#streak-sub').textContent=sub;
 $('#progress-day').textContent=p.phase==='upcoming'?'Starts Oct 5':p.phase==='complete'?'All 28 days done':`Day ${p.day} of 28`;
 $('#progress-left').textContent=p.phase==='live'?(p.daysLeft?`${plural(p.daysLeft,'day')} to go`:'Final day'):p.phase==='upcoming'?'28 days to go':'';

@@ -43,17 +43,19 @@ test('seed preserves all 28 dates and the five source-backed releases', async ()
   for (const release of seed.releases) assert.equal(normalizeSourceUrl(release.source_url), release.source_url);
 });
 
-test('progress counts a streak of delivered days and leaves today open until it ends', () => {
+test('the streak counts shipped days only and reports resets separately', () => {
   const day = (n, ship, reset = 'unconfirmed') => ({ day: n, ship_status: ship, reset_status: reset });
   const days = Array.from({ length: 28 }, (_, i) => day(i + 1, 'pending'));
   days[0] = day(1, 'verified'); days[1] = day(2, 'verified', 'confirmed'); days[2] = day(3, 'verified', 'confirmed');
-  assert.deepEqual(challengeProgress(days, '2026-10-07'), { phase: 'live', day: 3, daysLeft: 25, delivered: 3, elapsed: 3, missed: 0, streak: 3, todayDelivered: true });
-  assert.deepEqual(challengeProgress(days, '2026-10-08'), { phase: 'live', day: 4, daysLeft: 24, delivered: 3, elapsed: 3, missed: 0, streak: 3, todayDelivered: false });
+  assert.deepEqual(challengeProgress(days, '2026-10-07'), { phase: 'live', day: 3, daysLeft: 25, shipped: 3, elapsed: 3, missed: 0, streak: 3, todayShipped: true, resetDays: [2, 3] });
+  assert.deepEqual(challengeProgress(days, '2026-10-08'), { phase: 'live', day: 4, daysLeft: 24, shipped: 3, elapsed: 3, missed: 0, streak: 3, todayShipped: false, resetDays: [2, 3] });
   const missedDay = challengeProgress(days, '2026-10-09');
   assert.equal(missedDay.missed, 1);
   assert.equal(missedDay.streak, 0);
   days[4] = day(5, 'pending', 'confirmed');
-  assert.equal(challengeProgress(days, '2026-10-09').streak, 1, 'a reset-only day still counts as delivered');
+  const resetOnly = challengeProgress(days, '2026-10-09');
+  assert.equal(resetOnly.streak, 0, 'a reset without a feature does not extend the shipping streak');
+  assert.deepEqual(resetOnly.resetDays, [2, 3, 5]);
   assert.equal(challengeProgress(days, '2026-10-04').phase, 'upcoming');
-  assert.deepEqual(challengeProgress(days, '2026-11-02'), { phase: 'complete', day: 28, daysLeft: 0, delivered: 4, elapsed: 28, missed: 24, streak: 0, todayDelivered: false });
+  assert.deepEqual(challengeProgress(days, '2026-11-02'), { phase: 'complete', day: 28, daysLeft: 0, shipped: 3, elapsed: 28, missed: 25, streak: 0, todayShipped: false, resetDays: [2, 3, 5] });
 });

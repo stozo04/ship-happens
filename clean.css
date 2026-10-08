@@ -87,3 +87,6 @@ details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}detail
 .chip-icon{width:24px;height:24px}
 }
 .score-bottom .chip-icon{font-size:14px;margin:0;color:inherit}.score-bottom .feature-icon{color:#fff}.score-bottom .reset-icon-wrap{color:var(--reset-ink);font-size:13px}
+.stat-chip .chip-text{display:flex;flex-direction:column;line-height:1.2}
+.stat-chip .chip-text small{font-size:11px;font-weight:600;color:#111;margin-top:2px}
+@media(max-width:680px){.streak strong{font-size:22px;letter-spacing:-.6px}.stat-chip .chip-text small{font-size:10px}}
