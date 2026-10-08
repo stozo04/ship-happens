@@ -34,11 +34,14 @@ The live site does **not** read data from this repo.
 ## Adding a day's update
 
 1. Get the source. Every feature needs its own X post URL. A reset needs an explicit delivery post. Tibo's Day 3 post saying a banked reset was loading into every paid account counts; a poll, a promise or silence does not. If you can't open X, ask Steven for the post text or a screenshot.
-2. Write to Supabase after Steven confirms the wording:
-   - Update the day row: `ship_status='verified'` if a feature shipped; `reset_status='confirmed'` and `reset_source_url` if a reset was delivered; a short `note`.
+2. Pick the day. Days follow the Chicago calendar date of the post, and Tibo's own labels can lag: his "Day 3 (encore)" post landed at 1:38 AM Central on October 8, and Steven put it on Day 4. When the label and the date disagree, check with Steven.
+3. Write to Supabase after Steven confirms the wording:
    - Insert one `ship_happens_releases` row per feature, with title, summary, an existing category (`Performance`, `Codex`, `ChatGPT` or `API`; each has its own pill color), `source_url` and optional `product_url`.
-3. Verify the live feed: `curl -s https://ship-happens-rho.vercel.app/api/tracker` should show `"mode":"supabase"` and the new rows.
-4. Mirror the same data into `data/seed.json`, regenerate `db/seed.sql`, and update the hard-coded counts in `test/tracker.test.mjs` (the seed summary test) and `scripts/browser-smoke.mjs`. Open a PR for that.
+   - **Leave the day open while it is still going.** Keep `ship_status='pending'` and only update the `note` (for example "The day is still in progress"). The feature still shows in the timeline and as a dot on a white tile, but the tile doesn't turn black and the tug of war doesn't score the day, because a reset could still land.
+   - **Close the day out once it's over** (or when Steven says to): set `ship_status='verified'` if a feature shipped, `reset_status='confirmed'` and `reset_source_url` if a reset was delivered, and a final `note`.
+   - Set `verified_at` in `ship_happens_settings.content` to today's date. Leave `sync_checked_at` to the update job.
+4. Verify the live feed: `curl -s https://ship-happens-rho.vercel.app/api/tracker` should show `"mode":"supabase"` and the new rows.
+5. Mirror the same data into `data/seed.json`, regenerate `db/seed.sql`, and update the hard-coded counts in `test/tracker.test.mjs` (the seed summary test) and `scripts/browser-smoke.mjs` (timeline card and source-link counts). Open a PR for that.
 
 Writing style for notes and summaries: one or two plain sentences, in your own words, no hype. Say what changed for users. For Day 3, Steven asked the note to say that even with a big release, a reset still came; the live note reads "GPT-6 in ChatGPT was the big release, and we still got a reset…".
 
@@ -57,7 +60,7 @@ Day 2's reset source differs. Supabase links `…/2107676072871600470`; `data/se
 | `styles.css` | Old dark-theme base layer. Don't restyle things here; override in `clean.css`. |
 | `api/tracker.js` | Serverless reader for Supabase with the snapshot fallback. |
 | `scripts/build.mjs` | Copies a **fixed list** of files into `dist/`. A new top-level file must be added to that list or it won't deploy. |
-| `scripts/browser-smoke.mjs` | Optional Playwright checks. Needs Chrome and is not run in CI. Its expected counts are tied to current data. |
+| `scripts/browser-smoke.mjs` | Optional Playwright checks, not run in CI. Its expected counts are tied to current data. It launches Chrome; in a cloud session, run a scratch copy with `executablePath` set to the preinstalled Chromium, the session proxy, `ignoreHTTPSErrors`, `LOCAL_BUILD=1` and `PLAYWRIGHT_MODULE` pointing at an installed Playwright. |
 | `llms.txt` | Guide for outside agents using the JSON feed. Update it if the feed's shape changes. |
 
 Dates are calendar dates in `America/Chicago`. "Today" and the current challenge day come from that time zone.
@@ -76,7 +79,7 @@ These came out of real feedback. Don't undo them without asking.
   - Scoring (`tugOfWar` in `lib/tracker.mjs`): each completed day scores once. A confirmed reset takes the day, even if features also shipped. Otherwise a day with any shipped feature scores once for features, however many features shipped.
   - The red ribbon on the rope slides toward the leader on load. After November 1 the card announces the winner.
 - **Calendar tiles.**
-  - Black means the day is Completed (feature, reset or both).
+  - Black means the day is Completed (feature, reset or both). A day that is still open stays white with its dots, and screen readers hear "in progress".
   - One white dot per feature (up to four; five or more shows ×N).
   - A lime sticker with a refresh icon in the corner means a usage reset.
   - The current day says "Today" until something lands. Past days with nothing verified get a dashed border.
