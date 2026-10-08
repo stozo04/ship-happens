@@ -23,7 +23,7 @@ $('#tug-verdict').textContent=verdict;$('#tug-note').textContent=note;
 requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#tug-knot').style.left=`${t.knot}%`;}));}
 function tile(d,today,current){const count=records.releases.filter(r=>r.day===d.day).length;const state=dayStatus(d);const reset=d.reset_status==='confirmed';const isToday=d.day===current;const missed=state==='pending'&&d.date<today&&!isToday;
 const marks=count?(count<=4?`<span class="tile-dots">${'<i></i>'.repeat(count)}</span>`:`<span class="tile-many">×${count}</span>`):(isToday&&state==='pending'?'<span class="tile-today">Today</span>':'');
-const label=state==='pending'?(isToday?'today, nothing yet':d.date>today?'coming up':'not verified'):[count?plural(count,'feature'):'',reset?'usage reset':''].filter(Boolean).join(' and ');
+const label=state==='pending'?(isToday?'today, nothing yet':d.date>today?'coming up':'not verified'):`completed with ${[count?plural(count,'feature'):'',reset?'a usage reset':''].filter(Boolean).join(' and ')}`;
 return `<button class="day-tile ${state}${missed?' missed':''}${isToday?' current':''}" data-day="${d.day}" aria-label="Day ${d.day}, ${dateLabel(d.date)}: ${esc(label)}"><span class="tile-number">${String(d.day).padStart(2,'0')}</span>${marks}${reset?`<span class="tile-reset">${RESET_ICON}</span>`:''}</button>`;}
 function render(){const summary=summarize(records.days,records.releases);$('#all-count').textContent=summary.totalReleases;
 const today=chicagoToday();const current=dayNumber(today);renderTug(today);
