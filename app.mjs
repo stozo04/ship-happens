@@ -1,19 +1,35 @@
-import {dayStatus,summarize,normalizeSourceUrl,dayNumber} from './lib/tracker.mjs';
+import {dayStatus,summarize,normalizeSourceUrl,dayNumber,challengeProgress} from './lib/tracker.mjs';
 const $ = selector => document.querySelector(selector);
 const expandedDays=new Map();
 let records,filter='all',query='',mode='snapshot',warning='',toastTimer;
 const esc = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel = date => new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`));
 const source = url => normalizeSourceUrl(url);
+const RESET_ICON='<svg class="reset-icon" viewBox="-1 -1 26 26" aria-hidden="true" focusable="false"><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/><path d="M23 4v6h-6"/></svg>';
+const chicagoToday = () => new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const plural = (n,word) => `${n} ${word}${n===1?'':'s'}`;
 function link(url,text,cls='source-link'){const safe=source(url);return safe?`<a class="${cls}" href="${esc(safe)}" target="_blank" rel="noopener noreferrer">${text}</a>`:'';}
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2800);}
 function releaseCard(r){return `<article class="release-card"><div class="release-heading"><h3>${esc(r.title)}</h3><span class="category ${esc(r.category.toLowerCase())}">${esc(r.category)}</span>${link(r.source_url,'<span class="source-x">𝕏</span> Source ↗')}</div><p>${esc(r.summary)}</p></article>`;}
-function resetNotice(d){if(d.reset_status==='confirmed')return `<article class="reset-notice"><span aria-hidden="true">↻</span><div><strong>Reset confirmed</strong><p>${esc(d.note)}</p>${link(d.reset_source_url,'See the reset announcement ↗')}</div></article>`;return '';}
-function render(){const summary=summarize(records.days,records.releases);$('#shipped-score').textContent=summary.shippedDays;$('#release-score').textContent=summary.totalReleases;$('#reset-score').textContent=summary.confirmedResets;$('#all-count').textContent=summary.totalReleases;$('#progress-bar').style.width=`${summary.shippedDays/28*100}%`;
-const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());const current=dayNumber(today);
-$('#day-board').innerHTML=records.days.map(d=>{const count=records.releases.filter(r=>r.day===d.day).length;const state=dayStatus(d);const label=state==='pending'?(d.date>today?'Upcoming':'Unverified'):state.replaceAll('-',' ');return `<button class="day-tile ${state} ${d.day===current?'current':''}" data-day="${d.day}" aria-label="Day ${d.day}, ${dateLabel(d.date)}, ${esc(label)}, ${count} releases"><span class="tile-number">${String(d.day).padStart(2,'0')}</span><span class="tile-icon">${state==='shipped-and-reset'?'↗ ↻':state==='shipped'?'↗':state==='reset'?'↻':'·'}</span>${count>1?`<span class="tile-count">×${count}</span>`:''}</button>`;}).join('');renderTimeline();renderStatus();}
+function resetNotice(d){if(d.reset_status==='confirmed')return `<article class="reset-notice"><span aria-hidden="true">${RESET_ICON}</span><div><strong>Reset confirmed</strong><p>${esc(d.note)}</p>${link(d.reset_source_url,'See the reset announcement ↗')}</div></article>`;return '';}
+function renderProgress(today){const p=challengeProgress(records.days,today);let icon='🔥',title,sub;
+if(p.phase==='upcoming'){icon='⏳';title='Starts Oct 5';sub='28 days. Something new every day.';}
+else if(p.phase==='complete'){icon=p.missed?'🏁':'🏆';title=p.missed?`${p.delivered} of 28 days delivered`:'28 for 28';sub=p.missed?'The challenge is over.':'A perfect run. Not one day missed.';}
+else if(!p.missed){if(p.streak){title=`${p.streak}-day streak`;sub=p.todayDelivered?'Not a single day missed.':'Not a day missed. Today’s drop is still cooking.';}else{icon='⏳';title='Day 1 is cooking';sub='The first drop lands today.';}}
+else{icon='📦';title=`${p.delivered} of ${p.elapsed} days delivered`;sub=p.streak?`Current streak: ${plural(p.streak,'day')}.`:p.todayDelivered?'Back on the board.':'Waiting on today’s drop.';}
+$('#streak-icon').textContent=icon;$('#streak-title').textContent=title;$('#streak-sub').textContent=sub;
+$('#progress-day').textContent=p.phase==='upcoming'?'Starts Oct 5':p.phase==='complete'?'All 28 days done':`Day ${p.day} of 28`;
+$('#progress-left').textContent=p.phase==='live'?(p.daysLeft?`${plural(p.daysLeft,'day')} to go`:'Final day'):p.phase==='upcoming'?'28 days to go':'';
+$('#progress-bar').style.width=`${p.day/28*100}%`;}
+function tile(d,today,current){const count=records.releases.filter(r=>r.day===d.day).length;const state=dayStatus(d);const reset=d.reset_status==='confirmed';const isToday=d.day===current;const missed=state==='pending'&&d.date<today&&!isToday;
+const marks=count?(count<=4?`<span class="tile-dots">${'<i></i>'.repeat(count)}</span>`:`<span class="tile-many">×${count}</span>`):(isToday&&state==='pending'?'<span class="tile-today">Today</span>':'');
+const label=state==='pending'?(isToday?'today, nothing yet':d.date>today?'coming up':'not verified'):[count?plural(count,'feature'):'',reset?'usage reset':''].filter(Boolean).join(' and ');
+return `<button class="day-tile ${state}${missed?' missed':''}${isToday?' current':''}" data-day="${d.day}" aria-label="Day ${d.day}, ${dateLabel(d.date)}: ${esc(label)}"><span class="tile-number">${String(d.day).padStart(2,'0')}</span>${marks}${reset?`<span class="tile-reset">${RESET_ICON}</span>`:''}</button>`;}
+function render(){const summary=summarize(records.days,records.releases);$('#release-score').textContent=summary.totalReleases;$('#reset-score').textContent=summary.confirmedResets;$('#all-count').textContent=summary.totalReleases;
+const today=chicagoToday();const current=dayNumber(today);renderProgress(today);
+$('#day-board').innerHTML=records.days.map(d=>tile(d,today,current)).join('');renderTimeline();renderStatus();}
 function renderStatus(){const checked=records.challenge.verified_at;const status=mode==='supabase'?`Updated ${checked}`:`Snapshot · ${checked}`;$('#data-status').textContent=warning?`${status}. ${warning}`:status;}
-function activityBadges(d,count){return `<span class="day-activity">${count?`<span class="activity-badge feature-badge">↗ ${count} feature${count===1?'':'s'}</span>`:''}${d.reset_status==='confirmed'?'<span class="activity-badge reset-badge">↻ Reset</span>':''}</span>`;}
+function activityBadges(d,count){return `<span class="day-activity">${count?`<span class="activity-badge feature-badge">↗ ${count} feature${count===1?'':'s'}</span>`:''}${d.reset_status==='confirmed'?`<span class="activity-badge reset-badge">${RESET_ICON} Usage reset</span>`:''}</span>`;}
 function renderTimeline(){const term=query.toLowerCase();const releases=records.releases.filter(r=>`${r.title} ${r.summary} ${r.category} day ${r.day}`.toLowerCase().includes(term));
 const days=[...records.days].reverse().filter(d=>filter==='resets'?((d.reset_status==='confirmed')&&(!term||`reset ${d.note} day ${d.day}`.toLowerCase().includes(term))):releases.some(r=>r.day===d.day)||(filter==='all'&&!term&&(d.reset_status==='confirmed')));
 $('#timeline').innerHTML=days.length?days.map(d=>{const drops=filter==='resets'?[]:releases.filter(r=>r.day===d.day);return `<details class="day-group" data-timeline-day="${d.day}" ${term||(expandedDays.get(d.day)??d.day===days[0].day)?'open':''}><summary class="day-label"><strong>DAY ${String(d.day).padStart(2,'0')}</strong><span>${dateLabel(d.date)}, 2026</span><span class="label-line"></span>${activityBadges(d,drops.length)}</summary><div class="day-content">${drops.map(releaseCard).join('')}${term?'':resetNotice(d)}</div></details>`;}).join(''):`<div class="empty-state"><h3>${query?'No results':'No confirmed resets yet.'}</h3><p>${query?'Try another feature name or clear the search.':'Only a source confirming delivery earns a reset badge.'}</p><button class="outline-button" id="clear-filter">Show all</button></div>`;}

@@ -17,3 +17,73 @@ summary.day-label{cursor:pointer;list-style:none;min-height:40px;margin-bottom:0
 details.day-group:last-child:not([open]){border-bottom:0;padding-bottom:0}details.day-group:last-child{margin-bottom:0}
 
 .nav-button{border:0;background:none;padding:4px 0;color:#111;font-size:11px;white-space:nowrap}.nav-button:hover{text-decoration:underline}#agent-dialog{width:640px;max-width:calc(100% - 32px)}#agent-dialog h2{font-size:25px;margin:8px 0 12px}#agent-prompt{display:block;width:100%;height:310px;resize:vertical;border:1px solid #e4e4e4;border-radius:10px;padding:16px;background:#fafafa;color:#333;font:12px/1.6 var(--body)}.agent-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}.copy-button{background:#111;color:#fff;border:0;border-radius:7px;padding:10px 16px;font-size:12px}.copy-button:disabled{opacity:.6}#copy-status{color:#555;font-size:12px}@media(max-width:680px){.nav-button{font-size:10px}.topbar nav{flex-wrap:wrap}#agent-prompt{height:300px}}
+
+/* Scoreboard: streak, day progress, and stat chips */
+:root{--reset:#d5fa71;--reset-ink:#1d2a05;--reset-edge:#b5dc45}
+.reset-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;display:block}
+.scoreboard{display:flex;flex-direction:column;align-items:stretch;gap:18px;padding:4px 0 4px 32px}
+.streak{display:flex;align-items:center;gap:14px}
+.streak-icon{display:grid;place-items:center;flex-shrink:0;width:52px;height:52px;border-radius:16px;background:#f4f4f4;font-size:30px;line-height:1}
+.streak strong{display:block;font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.1;color:#111}
+.streak span:not(.streak-icon){display:block;margin-top:4px;font-size:13px;color:#555;line-height:1.4}
+.progress-label{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:7px;font-size:12px;color:#666}
+.progress-label strong{font-size:13px;font-weight:700;color:#111}
+.scoreboard .progress-track{display:block;height:10px;background:#efefef;border-radius:99px;overflow:hidden}
+.scoreboard .progress-track>div{height:100%;background:#111;border-radius:99px;transition:width .6s ease}
+.scoreboard .score-bottom{display:flex;flex-wrap:wrap;gap:10px;margin:0}
+.stat-chip{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;padding:8px 14px 8px 8px;border:1px solid #e4e4e4;border-radius:999px;background:#fff}
+.stat-chip strong{font-size:18px!important;font-weight:700;color:#111;line-height:1}
+.stat-chip>span:last-child{font-size:12px!important;color:#555!important;margin:0!important}
+.chip-icon{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;font-size:14px;font-weight:700;flex-shrink:0}
+.feature-icon{background:#111;color:#fff}
+.reset-icon-wrap{background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:13px}
+
+/* Calendar tiles: dots for features, a sticker for resets */
+.legend{flex-wrap:wrap;align-items:center;font-size:11px;gap:8px 16px;color:#555}
+.legend i{width:12px;height:12px}
+.legend-ship{background:#111;border-radius:3px}
+.legend-dots{display:grid;place-items:center;border:1px solid #ccc;border-radius:3px}
+.legend-dots b{width:4px;height:4px;border-radius:50%;background:#111}
+.legend .legend-reset{display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:9px}
+.legend-pending{border:1px solid #ccc;border-radius:3px}
+.day-board{gap:10px}
+.day-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:58px;border-radius:8px;overflow:visible;color:#888;border-color:#e2e2e2}
+.day-tile .tile-number{font-size:15px;font-weight:700;line-height:1}
+.day-tile.missed{border-style:dashed;border-color:#c8c8c8}
+.tile-dots{display:flex;gap:4px}
+.tile-dots i{display:block;width:6px;height:6px;border-radius:50%;background:currentColor}
+.tile-many{font-size:10px;font-weight:700;line-height:1}
+.tile-today{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:#111;line-height:1}
+.tile-reset{position:absolute;top:-8px;right:-8px;z-index:1;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--reset);color:var(--reset-ink);border:2px solid #fff;box-shadow:0 1px 4px #00000033;font-size:11px}
+.day-tile.current{outline:2px solid #111;outline-offset:3px}
+.day-tile.current.pending{border-color:#111;color:#111}
+
+/* Timeline: match the reset sticker */
+.reset-badge{display:inline-flex;align-items:center;gap:5px;background:var(--reset);color:var(--reset-ink);border-color:var(--reset-edge)}
+.reset-badge .reset-icon{font-size:10px}
+.day-content>.reset-notice>span{background:var(--reset);color:var(--reset-ink);border:1px solid var(--reset-edge);font-size:14px}
+
+@media(max-width:680px){
+.scoreboard{margin:26px 0 0;padding:20px;gap:16px;border:1px solid #e8e8e8;border-radius:16px}
+.streak-icon{width:46px;height:46px;font-size:26px;border-radius:14px}
+.streak strong{font-size:25px}
+.streak span:not(.streak-icon){font-size:12px}
+.board-section .section-header{flex-direction:column;align-items:flex-start;gap:10px}
+.legend{font-size:10px;gap:6px 12px}
+.day-board{gap:8px}
+.day-tile{height:50px;gap:5px;border-radius:7px}
+.day-tile .tile-number{font-size:14px}
+.tile-dots{gap:3px}
+.tile-dots i{width:5px;height:5px}
+.tile-reset{width:19px;height:19px;top:-7px;right:-7px;font-size:10px}
+}
+.arrow-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;display:block}
+.feature-icon{font-size:13px}
+@media(max-width:680px){
+.scoreboard .score-bottom{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-chip{padding:8px 10px 8px 8px;border-radius:14px;gap:7px}
+.stat-chip strong{font-size:17px!important}
+.stat-chip>span:last-child{font-size:11px!important;line-height:1.2}
+.chip-icon{width:24px;height:24px}
+}
+.score-bottom .chip-icon{font-size:14px;margin:0;color:inherit}.score-bottom .feature-icon{color:#fff}.score-bottom .reset-icon-wrap{color:var(--reset-ink);font-size:13px}

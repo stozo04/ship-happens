@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { dayNumber, normalizeSourceUrl, summarize, dayStatus } from '../lib/tracker.mjs';
+import { dayNumber, normalizeSourceUrl, summarize, dayStatus, challengeProgress } from '../lib/tracker.mjs';
 
 test('challenge boundaries and calendar dates are exact', () => {
   assert.equal(dayNumber('2026-10-05'), 1);
@@ -41,4 +41,19 @@ test('seed preserves all 28 dates and the five source-backed releases', async ()
   assert.equal(seed.releases.filter(release => release.day === 2).length, 4);
   assert.equal(seed.days[1].reset_status, 'confirmed');
   for (const release of seed.releases) assert.equal(normalizeSourceUrl(release.source_url), release.source_url);
+});
+
+test('progress counts a streak of delivered days and leaves today open until it ends', () => {
+  const day = (n, ship, reset = 'unconfirmed') => ({ day: n, ship_status: ship, reset_status: reset });
+  const days = Array.from({ length: 28 }, (_, i) => day(i + 1, 'pending'));
+  days[0] = day(1, 'verified'); days[1] = day(2, 'verified', 'confirmed'); days[2] = day(3, 'verified', 'confirmed');
+  assert.deepEqual(challengeProgress(days, '2026-10-07'), { phase: 'live', day: 3, daysLeft: 25, delivered: 3, elapsed: 3, missed: 0, streak: 3, todayDelivered: true });
+  assert.deepEqual(challengeProgress(days, '2026-10-08'), { phase: 'live', day: 4, daysLeft: 24, delivered: 3, elapsed: 3, missed: 0, streak: 3, todayDelivered: false });
+  const missedDay = challengeProgress(days, '2026-10-09');
+  assert.equal(missedDay.missed, 1);
+  assert.equal(missedDay.streak, 0);
+  days[4] = day(5, 'pending', 'confirmed');
+  assert.equal(challengeProgress(days, '2026-10-09').streak, 1, 'a reset-only day still counts as delivered');
+  assert.equal(challengeProgress(days, '2026-10-04').phase, 'upcoming');
+  assert.deepEqual(challengeProgress(days, '2026-11-02'), { phase: 'complete', day: 28, daysLeft: 0, delivered: 4, elapsed: 28, missed: 24, streak: 0, todayDelivered: false });
 });
