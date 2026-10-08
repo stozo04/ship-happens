@@ -18,7 +18,7 @@ A maintainer-managed Codex automation checks Tibo's posts through X Agent every 
 
 The automation runs outside this repository. Forking or deploying the app does not include that schedule or its authenticated integrations. A manual test verified the source-check, database-write, and live API path. The first scheduled execution has not yet been verified.
 
-The app reads stored records on load and Refresh. It does not read X directly. Database updates appear without rebuilding the site. If live storage is unavailable, the app labels its fallback snapshot.
+The app reads stored records on load and Refresh. It does not read X directly. Database updates appear without rebuilding the site. If live storage is unavailable, the app says so instead of showing old data.
 
 ## Development
 
@@ -31,7 +31,7 @@ npm test
 npm run build
 ```
 
-The build writes static assets to `dist/`. Vercel serves `api/tracker.js` alongside them. Serving only `dist/` provides the snapshot fallback, not the serverless API.
+The build writes static assets to `dist/`. Vercel serves `api/tracker.js` alongside them. Serving only `dist/` leaves out the serverless API, so the app can't load records. Set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (see `.env.example`) and run `db/schema.sql` in your own Supabase project to get empty challenge days.
 
 Optional browser checks use an installed Playwright module and Chrome:
 
